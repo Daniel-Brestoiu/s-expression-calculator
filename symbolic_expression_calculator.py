@@ -1,23 +1,27 @@
 
-# Daniel Brestoiu
-# Symbolic Expression Calculator
+#Daniel Brestoiu
+#Symbolic Expression Calculator
 
 
 import re
+import sys
 from sympy import simplify
 
 FUNCTION_DICT = {"add": "+", "multiply": "*"}
 REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9A-Za-z]+\ [0-9A-Za-z]+\))"
-# NOTE: Regex
-# Match group starting with (, followed by char or num indefinitely, followed by space, 
+#NOTE: Regex
+#Match group starting with (, followed by char or num indefinitely, followed by space, 
 #                              followed by char or num indefinitely, followed by space,
 #                              followed by char or num indefinitely, followed by )
-# I use this to identify the portions of input that are currently evaluatable.
+#I use this to identify the portions of input that are currently evaluatable.
 
-# NOTE: Extensibility
-# All other math functions could be implemented trivially by adding to FUNCTION_DICT
-# Arbitrary amount of arguments would require changing regex and evaluator() parameters. 
+#NOTE: Extensibility
+#All other math functions could be implemented trivially by adding to FUNCTION_DICT
+#Arbitrary amount of arguments would require changing regex and evaluator() parameters. 
 
+def parse_input():
+    args = sys.argv
+    return args[1]
 
 def is_int(string:str) -> bool:
     """"is_int attempts to convert a string to an int and reports its results."""
@@ -84,7 +88,7 @@ def input_parser(input_string: str) -> str:
     """ 
     if is_int(input_string):
         return input_string
-        # he is int, give back plz.
+        #he is int, give back plz.
     else:
         try:
             modified_input: str = input_string.strip()
@@ -120,12 +124,11 @@ def tests() -> None:
     assert input_parser("(add (multiply (add 4 (add 3 (add 3 (add 3 (add 1 (multiply 4 5)))))) 5) (multiply 10 10))") == '270'
     
 
-def main() -> None:
+def main(input: str) -> None:
     """ Main function"""
-    input_string = input()
-    print(input_parser(input_string))
+    print(input_parser(input))
 
 
 if __name__ == "__main__":
     #tests()
-    main()
+    main(parse_input())
