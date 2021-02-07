@@ -138,5 +138,5 @@ def main(input: str) -> None:
 
 
 if __name__ == "__main__":
-    tests()
+    #tests()
     main(parse_input())
