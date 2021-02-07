@@ -8,16 +8,9 @@ import sys
 from sympy import simplify
 
 FUNCTION_DICT = {"add": "+", "multiply": "*"}
-REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9A-Za-z]+\ [0-9A-Za-z]+\))"
-#NOTE: Regex
-#Match group starting with (, followed by char or num indefinitely, followed by space, 
-#                              followed by char or num indefinitely, followed by space,
-#                              followed by char or num indefinitely, followed by )
-#I use this to identify the portions of input that are currently evaluatable.
+#REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9]+\ [0-9]+\))"
+REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9\ ]+\ +[0-9]+\))"
 
-#NOTE: Extensibility
-#All other math functions could be implemented trivially by adding to FUNCTION_DICT
-#Arbitrary amount of arguments would require changing regex and evaluator() parameters. 
 
 def parse_input():
     args = sys.argv
@@ -32,40 +25,51 @@ def is_int(string:str) -> bool:
         return False
 
 
-def regex_splitter(input_string: str) -> list:
+def regex_splitter(input_string: str) -> str:
     """ Regex Splitter attempts to split the input string into useful components based on 
     the regex that has been defined.
     Returns input as grouped per defined regex.
     """
-    grouping_list: list = re.compile(REGEX_PATTERN).split(input_string)
-    return grouping_list
-
-
-def regex_component_evaluator(strings_list: list) -> str:
-    """ Takes in a list containing strings, where some strings are valid (func num num).
-    Returns input list with all (func num num) evaluated recomposed as a joined string."""
-
-    full_string: str = ""
+    #grouping_list: list = re.compile(REGEX_PATTERN).split(input_string)
     compiled_regex = re.compile(REGEX_PATTERN)
+    mo = compiled_regex.findall(input_string)
+    
+    #print("Current found matches are:" + str(mo))
+    
+    result = evaluator_indefinite(mo)
+    
+    #print("Dictionary of evaluations" + str(result))
+    
+    new_string = input_string
 
-    for string in strings_list:
-        if compiled_regex.match(string):
-            try:    
-                #By matching pattern I know it is of the form (func num num) according to input specifications
-                
-                evaluatable_string: str = string[1:-1].split(" ")
-                #This is to strip the () 
-                #print(evaluatable_string)
-                
-                evaluated_expression: str = evaluator(FUNCTION_DICT[evaluatable_string[0]], evaluatable_string[1], evaluatable_string[2])
-                full_string = full_string + evaluated_expression
-            except:
-                raise Exception("Invalid Input")
-        else:
-            #Not a string we're looking to evaluate.
-            full_string = full_string + string
+    for match in mo:
+        new_string = new_string.replace(str(match), str(result[match]))
+        #print("Current string modified with new value: " + new_string)
 
-    return full_string
+    return new_string
+
+def evaluator_indefinite(match_group: list) -> dict:
+
+    return_dict = {}
+    
+    for match in match_group:
+        #print("Evaluator match is: "+match)
+
+        stripped_match = match[1:-1]
+        split_match = stripped_match.split()
+
+        #print("Print evaluator split match is" + str(split_match))
+
+        operator = FUNCTION_DICT[split_match[0]]
+        current_result = split_match[1]
+        for x in range(len(split_match)-2):
+            new_num = split_match[x+2]
+            current_result = evaluator(operator, current_result, new_num)
+        
+        return_dict[match] = current_result
+
+    return return_dict
+
 
 
 def evaluator(operator: str, value1: str, value2: str) -> str:
@@ -93,10 +97,12 @@ def input_parser(input_string: str) -> str:
         try:
             modified_input: str = input_string.strip()
 
-            input_as_list: list = regex_splitter(modified_input)
-            evaluated_input: str = regex_component_evaluator(input_as_list)
+            evaluatable_pairs: str = regex_splitter(modified_input)
 
-            return (input_parser(evaluated_input))
+            while not (is_int(evaluatable_pairs)):
+                evaluatable_pairs = regex_splitter(evaluatable_pairs)
+
+            return (evaluatable_pairs)
 
         except:
             raise Exception("Invalid Input")
@@ -123,6 +129,7 @@ def tests() -> None:
     assert input_parser("(add (multiply 4 5) (multiply 10 10))") == '120'
     assert input_parser("(add (multiply (add 4 (add 3 (add 3 (add 3 (add 1 (multiply 4 5)))))) 5) (multiply 10 10))") == '270'
     
+    assert input_parser("(add (multiply 4 5) (multiply 10 10) (add 1 2 3 4 5 6 7 (add 4 4) 9) (multiply 4 5))") == '185'
 
 def main(input: str) -> None:
     """ Main function"""
