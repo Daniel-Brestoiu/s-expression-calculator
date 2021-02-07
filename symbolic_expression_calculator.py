@@ -1,13 +1,11 @@
-
 #Daniel Brestoiu
 #Symbolic Expression Calculator
-
 
 import re
 import sys
 from sympy import simplify
 
-FUNCTION_DICT = {"add": "+", "multiply": "*"}
+FUNCTION_DICT = {"add": "+", "multiply": "*", "subtract": "-", "divide": "/"}
 #REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9]+\ [0-9]+\))"
 REGEX_PATTERN = "(\([0-9A-Za-z]+\ [0-9\ ]+\ +[0-9]+\))"
 
@@ -131,11 +129,14 @@ def tests() -> None:
     
     assert input_parser("(add (multiply 4 5) (multiply 10 10) (add 1 2 3 4 5 6 7 (add 4 4) 9) (multiply 4 5))") == '185'
 
+    assert input_parser('(subtract 2 1)') == '1'
+    assert input_parser("(divide 55 5)") == '11'
+
 def main(input: str) -> None:
     """ Main function"""
     print(input_parser(input))
 
 
 if __name__ == "__main__":
-    #tests()
+    tests()
     main(parse_input())
